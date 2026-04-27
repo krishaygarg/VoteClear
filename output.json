@@ -1,0 +1,66 @@
+{
+    "candidates": [
+        {
+            "name": "Eric Adams",
+            "topic_summaries": [
+                {
+                    "topic": "Public Safety",
+                    "summary": "As the incumbent Mayor of New York City, Eric Adams has adopted a 'tough-on-crime' approach. A significant initiative during his tenure has been the reintroduction of a plain-clothed NYPD unit, which had previously been disbanded. This action reflects his commitment to addressing public safety concerns and reducing crime in the city.",
+                    "sources": [
+                        "https://en.wikipedia.org/wiki/Eric_Adams"
+                    ],
+                    "tools_used": [
+                        "wikipedia"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Zohran Mamdani",
+            "topic_summaries": [
+                {
+                    "topic": "General Political Stance & Affiliations",
+                    "summary": "Zohran Mamdani is the Democratic nominee for the 2025 New York City mayoral election and a member of the New York State Assembly. He is affiliated with the Democratic Party and the Democratic Socialists of America. His professional background includes working as a housing counselor. While specific detailed policy stances for his 2025 mayoral campaign are not extensively outlined in the provided Wikipedia summaries, his political affiliations and past work suggest a focus on progressive policies, social justice, and housing-related issues.",
+                    "sources": [
+                        "https://en.wikipedia.org/wiki/Zohran_Mamdani",
+                        "https://en.wikipedia.org/wiki/2025_New_York_City_mayoral_election"
+                    ],
+                    "tools_used": [
+                        "wikipedia"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Curtis Sliwa",
+            "topic_summaries": [
+                {
+                    "topic": "Public Safety",
+                    "summary": "Curtis Sliwa is the Republican nominee for the 2025 New York City mayoral election. He is widely known as the founder and chief executive officer of the Guardian Angels, a non-profit crime prevention organization. Given his extensive background and leadership in the Guardian Angels, his campaign is strongly inferred to prioritize public safety and crime reduction as key policy areas. Specific detailed proposals for his 2025 mayoral campaign were not available in the provided Wikipedia summaries.",
+                    "sources": [
+                        "https://en.wikipedia.org/wiki/Curtis_Sliwa",
+                        "https://en.wikipedia.org/wiki/2025_New_York_City_mayoral_election"
+                    ],
+                    "tools_used": [
+                        "wikipedia"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Andrew Cuomo",
+            "topic_summaries": [
+                {
+                    "topic": "General Campaign Focus",
+                    "summary": "Andrew Cuomo, a former Governor of New York, is running an independent campaign for the 2025 New York City mayoral election under the 'Fight and Deliver' ticket. While his candidacy is confirmed, the provided Wikipedia summaries do not detail specific policy positions or a comprehensive platform for his 2025 mayoral run. His extensive prior experience as governor would typically encompass a broad range of policy areas, including economic development, infrastructure, and public health.",
+                    "sources": [
+                        "https://en.wikipedia.org/wiki/2025_New_York_City_mayoral_election"
+                    ],
+                    "tools_used": [
+                        "wikipedia"
+                    ]
+                }
+            ]
+        }
+    ]
+}

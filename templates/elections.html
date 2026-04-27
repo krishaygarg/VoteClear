@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select an Election</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+  .logo {
+  width: 220px;  /* was 150px */
+  max-width: 90%; /* responsive on smaller screens */
+  margin-bottom: 25px;
+}
+
+
+    h1 {
+      color: #2c3e50;
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .election-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .election-button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 300px;
+      text-align: center;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    .election-button:hover {
+      background-color: #2980b9;
+      transform: translateY(-3px);
+    }
+
+    .election-button:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+  <!-- Logo -->
+  <img src="{{ url_for('static', filename='images/voteclear_logo.png') }}" alt="VoteClear Logo" class="logo">
+
+  <h1>Select an Election</h1>
+  <div class="election-container">
+    {% for election in elections %}
+      <form action="/chat/{{election.id}}" method="get">
+        <button type="submit" class="election-button">{{ election.name }}</button>
+      </form>
+    {% endfor %}
+  </div>
+</body>
+</html>

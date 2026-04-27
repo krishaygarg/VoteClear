@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Chat with Your Agent</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* GLOBAL STYLES */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        h2 {
+            text-align: center;
+            margin: 20px 0;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+
+/* =======================
+   GLOBAL STYLES
+======================= */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    /* Modal Box */
+    .modal {
+      background: white;
+      padding: 20px 25px;
+      max-width: 600px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      overflow-y: auto;
+      max-height: 80vh;
+    }
+
+    .modal h2 {
+      margin-top: 0;
+      font-size: 1.4rem;
+      color: #333;
+    }
+
+    .modal p {
+      font-size: 0.95rem;
+      color: #555;
+      line-height: 1.4;
+    }
+
+    .modal button {
+      margin-top: 15px;
+      padding: 10px 18px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .modal button:hover {
+      background: #1d4ed8;
+    }
+body {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+h2 {
+    text-align: center;
+    margin: 20px 0;
+    color: #2a3f54;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* =======================
+   CHAT BOX
+======================= */
+#chatbox {
+    flex: 1;
+    margin: 0 20px;
+    padding: 15px;
+    border-radius: 15px;
+    background: #f5f7fa;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    font-size: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scroll-behavior: smooth;
+}
+.section-header {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    color: #2a3f54;
+    border-bottom: 2px solid #7fa1c7;
+    padding-bottom: 4px;
+}
+/* =======================
+   STATUS MESSAGE
+======================= */
+#status {
+    text-align: center;
+    font-style: italic;
+    color: #555;
+    margin: 10px 20px;
+    min-height: 20px;
+}
+
+/* =======================
+   INPUT AREA
+======================= */
+#inputbox {
+    display: flex;
+    justify-content: center;
+    padding: 15px 20px;
+    background: #f5f5f5cc;
+    border-top: 2px solid #9bb1c9;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+}
+
+#message {
+    flex: 1;
+    padding: 12px 15px;
+    border-radius: 25px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    outline: none;
+    transition: 0.3s;
+}
+
+#message:focus {
+    border-color: #7fa1c7;
+    box-shadow: 0 0 10px rgba(127,161,199,0.3);
+}
+
+#sendBtn {
+    margin-left: 10px;
+    padding: 12px 20px;
+    border-radius: 25px;
+    border: none;
+    background: #7fa1c7;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#sendBtn:hover {
+    background: #5d7fa0;
+}
+
+/* =======================
+   USER & AGENT MESSAGES
+======================= */
+.user, .agent {
+    margin: 10px 0;
+    padding: 12px 16px;
+    border-radius: 20px;
+    max-width: 70%;
+    word-wrap: break-word;
+    line-height: 1.4;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    opacity: 0;
+    transform: translateY(10px);
+    animation: slideIn 0.3s forwards;
+}
+
+.user {
+    background: #7fa1c7;  /* muted blue */
+    color: white;
+    align-self: flex-end;
+    border-radius: 20px 20px 0 20px; /* texting bubble style */
+}
+
+.agent {
+    background: #cfd9e6; /* soft gray-blue */
+    color: #2a3f54;
+    align-self: flex-start;
+    border-radius: 20px 20px 20px 0;
+}
+
+
+.question {
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: #2a3f54;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: #f4f6f9; /* or transparent if you prefer */
+}
+
+.logo {
+  width: 60px; /* adjust as needed */
+  height: auto;
+}
+
+.back-btn {
+  padding: 6px 14px;
+  background: #7fa1c7;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 16px;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.back-btn:hover {
+  background: #5d7fa0;
+}
+
+/* =======================
+   ANIMATIONS
+======================= */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+
+    </style>
+</head>
+
+<body>
+      <div id="disclaimerModal" class="modal-overlay">
+    <div class="modal">
+      <h2>Disclaimer</h2>
+      <p>This app is <strong>not affiliated with any government agency</strong> and does not provide legal or official voting advice.</p>
+      <p>Candidate recommendations are generated by the app’s algorithm and do not represent endorsements by the developers or affiliated organizations.</p>
+      <p>Information may not always be complete or up to date. It is <strong>your responsibility</strong> to verify details with official election sources before voting.</p>
+      <p>We do not sell or share your personal information. Your responses are only used to generate recommendations within the app.</p>
+      <p>By clicking “I Agree,” you acknowledge that the developers are <strong>not liable</strong> for any decisions made based on the app’s recommendations.</p>
+      <button id="agreeBtn">I Agree</button>
+    </div>
+  </div>
+ <div class="header">
+  <a href="/"><img src="{{ url_for('static', filename='images/voteclear_logo.png') }}" alt="VoteClear Logo" class="logo"></a>
+  <a href="/" class="back-btn">← Back</a>
+</div>
+    <h2>Chat</h2>
+    <div id="chatbox"></div>
+    <div id="status"></div>
+    <div id="inputbox">
+        <input type="text" id="message" placeholder="Type your message...">
+        <button id="sendBtn" onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        // --------------------
+        // ELEMENTS & CONFIG
+        // --------------------
+           const modal = document.getElementById("disclaimerModal");
+    const agreeBtn = document.getElementById("agreeBtn");
+
+    // Check if user already agreed
+    if (localStorage.getItem("disclaimerAgreed") === "true") {
+      modal.style.display = "none";
+    }
+
+    // On agree, hide modal and store agreement
+    agreeBtn.addEventListener("click", () => {
+      localStorage.setItem("disclaimerAgreed", "true");
+      modal.style.display = "none";
+    });
+        const inputEl = document.getElementById("message");
+        const buttonEl = document.getElementById("sendBtn");
+        const chatBox = document.getElementById("chatbox");
+        const statusEl = document.getElementById("status");
+
+        const statuses = [
+            "🧠 Analyzing your response",
+            "🧩 Compiling next question",
+            "🔍 Researching relevant issues",
+            "🤔 Considering your preferences"
+        ];
+
+        inputEl.addEventListener("keypress", function(e) {
+            if (e.key === "Enter") sendMessage();
+        });
+
+        // --------------------
+        // THINKING ANIMATION
+        // --------------------
+        let thinkingInterval;
+        function startThinking() {
+            let i = 0;
+            let dotCount = 0;
+            thinkingInterval = setInterval(() => {
+                dotCount = (dotCount + 1) % 4;
+                let dots = ".".repeat(dotCount);
+                statusEl.innerText = statuses[i] + dots;
+
+                if (dotCount === 3) i = (i + 1) % statuses.length;
+            }, 500);
+        }
+
+        function stopThinking() {
+            clearInterval(thinkingInterval);
+            statusEl.innerText = "";
+        }
+
+        // --------------------
+        // CHAT DISPLAY
+        // --------------------
+        function addUserMessage(msg) {
+            const div = document.createElement("div");
+            div.className = "user";
+            div.innerHTML = `<b>You:</b> ${msg}`;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function addAgentMessage(msg) {
+            const div = document.createElement("div");
+            div.className = "agent";
+            div.innerHTML = `<b>Agent:</b><br>${msg}`;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function addErrorMessage(err) {
+            const div = document.createElement("div");
+            div.className = "agent";
+            div.style.color = "red";
+            div.innerHTML = `<b>Agent Error:</b> ${err}`;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // --------------------
+        // BUTTON CONTROL
+        // --------------------
+        function disableInput() {
+            inputEl.disabled = true;
+            buttonEl.disabled = true;
+        }
+
+        function enableInput() {
+            inputEl.disabled = false;
+            buttonEl.disabled = false;
+            inputEl.focus();
+        }
+
+        // --------------------
+        // SERVER COMM
+        // --------------------
+        function sendToServer(msg) {
+            return fetch("/backend/{{id}}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: msg })
+            })
+            .then(res => res.json());
+        }
+
+        // --------------------
+        // FORMAT AGENT OUTPUT
+        // --------------------
+        function formatAgentText(rawText) {
+            rawText = rawText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            rawText = rawText.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
+            const lines = rawText.split("\n");
+
+            let html = "";
+            let currentSection = null;
+
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line) return;
+                if (/^###\s*(.*)/.test(line)) {
+                const sectionTitle = line.match(/^###\s*(.*)/)[1];
+                if (currentSection) {
+                    html += "</ul>";
+                    currentSection = null;
+                }
+                html += `<div class="section-header">${sectionTitle}</div>`;
+                } 
+                else if (/^Pros:$/i.test(line)) {
+                    currentSection = "pros";
+                    html += '<ul>';
+                } else if (/^Cons:$/i.test(line)) {
+                    currentSection = "cons";
+                    html += '<ul>';
+                } else if (/^[A-Z]\./.test(line)) {
+                    if (currentSection) html += "</ul>";
+                    currentSection = null;
+                    html += `<div><div>${line}</div>`;
+                } else if (/^- /.test(line)) {
+                    if (currentSection) html += `<li>${line.substring(2)}</li>`;
+                    else html += `<p>${line}</p>`;
+                } else {
+                    if (currentSection) html += `<li>${line}</li>`;
+                    else html += `<p>${line}</p>`;
+                }
+            });
+
+            if (currentSection) html += "</ul>";
+            if (html.includes('option')) html += "</div>";
+
+            return html;
+        }
+
+        // --------------------
+        // MAIN FUNCTION
+        // --------------------
+        function sendMessage() {
+            const msg = inputEl.value.trim();
+            if (!msg) return;
+
+            addUserMessage(msg);
+            inputEl.value = "";
+            disableInput();
+            startThinking();
+
+            sendToServer(msg)
+                .then(data => {
+                    stopThinking();
+                    addAgentMessage(formatAgentText(data.response));
+                    enableInput();
+                })
+                .catch(err => {
+                    stopThinking();
+                    addErrorMessage(err);
+                    enableInput();
+                });
+        }
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const welcomeMessage = `
+        Hello! I am an adaptive recommendation system designed to help you find a candidate for the {{elections_list[id |int -1].name}}. I'll do this by asking you a series of multiple-choice questions about practical, everyday issues. Your answers will help me understand your values and preferences.
+
+Here's how it works:
+
+1.  I will ask you one multiple-choice question at a time. Each question will present a real-world scenario with different options, and each option will include a balanced explanation of its pros and cons.
+
+2.  After you answer, I'll update my understanding of your preferences.
+
+3.  I'll use this information to narrow down which candidate(s) might align best with your views.
+
+4.  Once I have enough information, I will stop asking questions. Instead, I will provide a holistic review of how your preferences align with each candidate, summarize the areas of alignment and tradeoffs in practical terms, and give you a recommendation.
+
+You just need to read the questions and choose the answer that best reflects your preference. 
+
+**To begin, simply type a message below.**
+        
+        
+        `;
+
+        addAgentMessage(formatAgentText(welcomeMessage));
+    });
+
+    </script>
+</body>
+</html>
