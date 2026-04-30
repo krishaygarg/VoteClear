@@ -1,20 +1,22 @@
+import os
 import requests
 import json
 import re
-# Replace with your actual API key obtained from Google Cloud Console
-API_KEY = "AIzaSyC8LJWk0h4Bknna430G9szDk9ZCSIIttH8"
+from dotenv import load_dotenv
 
+load_dotenv()
 
-# A dictionary of sample addresses, keyed by state abbreviation.
-# You MUST add more addresses here for states you want to query.
+API_KEY = os.getenv("GOOGLE_API_KEY")
+if not API_KEY:
+    raise ValueError("GOOGLE_API_KEY environment variable not set")
+
 SAMPLE_ADDRESSES = {
     "CA": "1600 Amphitheatre Parkway, Mountain View, CA 94043",
     "NY": "1 Police Plaza, New York, NY 10038",
     "TX": "1100 Congress Ave, Austin, TX 78701",
-    "FL": "400 S Monroe St, Tallahassee, FL 32399", # Residential-looking FL address
+    "FL": "400 S Monroe St, Tallahassee, FL 32399",
     "PA": "500 N 3rd St, Harrisburg, PA 17120",
-    "MI": "2711 E. OUTER DR., Detroit, MI 48234", # Residential-type Michigan address
-    # Add more state abbreviations and a valid residential-type address for each if you want to query more states
+    "MI": "2711 E. OUTER DR., Detroit, MI 48234",
 }
 
 def get_elections(api_key):
@@ -32,58 +34,44 @@ def get_elections(api_key):
         return None
 
 def get_voter_info(api_key, election_id, address):
-    """
-    Fetches voter information (including candidates) for a specific election and address.
-    This version includes comprehensive error reporting by parsing the API's JSON response
-    even if the HTTP status code is 200 OK but the API reports an internal error.
-    """
+    """Fetches voter information for a specific election and address."""
     encoded_address = requests.utils.quote(address)
     voter_info_url = (
         f"https://www.googleapis.com/civicinfo/v2/voterinfo?"
         f"key={api_key}&address={encoded_address}&electionId={election_id}"
     )
-    
+
     try:
         response = requests.get(voter_info_url)
-        
-        # --- Step 1: Try to parse the response as JSON regardless of HTTP status ---
+
         response_json = {}
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            # If it's not JSON, it's likely a non-API error or a very unexpected response
             print(f"  Warning: Could not decode JSON from response for election ID {election_id} ({address}).")
             print(f"  HTTP Status: {response.status_code}, Raw content: {response.text}")
-            return None # Indicate failure to get valid JSON
+            return None
 
-        # --- Step 2: Check the 'status' field within the JSON response ---
-        # The Civic Information API often uses a 'status' field ("success" or "error")
-        # in its JSON body, even if the HTTP status code is 200 OK.
         if response_json.get("status") == "success":
-            return response_json # Successful API call and data found
+            return response_json
         else:
-            # The API itself reported an error or non-success status
             error_message = response_json.get("error", {}).get("message", "API reported non-success status.")
             print(f"  API Reported Status: '{response_json.get('status', 'N/A')}' for election ID {election_id} ({address}): {error_message}")
-            
-            # Print more specific error details if available in the 'errors' array
+
             if 'errors' in response_json.get('error', {}):
                 for err in response_json['error']['errors']:
                     print(f"    - Detail: Reason: {err.get('reason', 'N/A')}, Message: {err.get('message', 'N/A')}")
-            
-            # Also print the HTTP status code if it indicates an error (e.g., 400 Bad Request)
+
             if response.status_code >= 400:
                 print(f"  (HTTP Status Code: {response.status_code})")
-            
-            return None # Indicate API reported an error
+
+            return None
 
     except requests.exceptions.RequestException as e:
-        # --- Step 3: Handle network-level or request-specific errors ---
-        # This catches errors like connection issues, timeouts, invalid URLs that don't get a response.
         print(f"  Network/Request Error for election ID {election_id} ({address}): {e}")
         if e.response is not None:
             print(f"  HTTP Status Code: {e.response.status_code}")
-            print(f"  Raw response content: {e.response.text}") # Print raw content for non-JSON HTTP errors
+            print(f"  Raw response content: {e.response.text}")
         return None
 
 def extract_state_from_ocd_division(ocd_division_id):
@@ -112,21 +100,18 @@ def main():
         election_id = election["id"]
         election_name = election["name"]
         election_day = election["electionDay"]
-        ocd_division_id = election.get("ocdDivisionId") # OCD Division ID provides geographic scope
+        ocd_division_id = election.get("ocdDivisionId")
 
         print(f"\nProcessing Election: {election_name} (ID: {election_id}, Date: {election_day})")
         print(f"  OCD Division ID: {ocd_division_id}")
 
-        # Attempt to determine the state of the election from its OCD Division ID
         election_state = extract_state_from_ocd_division(ocd_division_id)
-        
+
         target_address = None
         if election_state and election_state in SAMPLE_ADDRESSES:
             target_address = SAMPLE_ADDRESSES[election_state]
             print(f"  Using address for {election_state}: {target_address}")
         elif ocd_division_id == "ocd-division/country:us":
-            # For nationwide elections, use a default address (e.g., California) if available
-            # This is a fallback if a more specific state isn't found/needed.
             if "CA" in SAMPLE_ADDRESSES:
                 target_address = SAMPLE_ADDRESSES["CA"]
                 print(f"  Using default address for nationwide election (CA): {target_address}")
@@ -135,7 +120,7 @@ def main():
                 continue
         else:
             print(f"  Skipping: No matching sample address found for election's state or general division.")
-            continue # Skip to the next election if no suitable address
+            continue
 
         voter_info = get_voter_info(API_KEY, election_id, target_address)
 
@@ -155,7 +140,7 @@ def main():
                             if 'candidateUrl' in candidate:
                                 print(f"        Website: {candidate['candidateUrl']}")
                             if 'channels' in candidate:
-                                print("        Social Media:") # Added for clarity
+                                print("        Social Media:")
                                 for channel in candidate['channels']:
                                     print(f"          - Type: {channel.get('type', 'N/A')}, ID: {channel.get('id', 'N/A')}")
                     else:
@@ -163,7 +148,6 @@ def main():
             else:
                 print("    No contests found for this election at the provided address.")
         else:
-            # Error message is already printed by get_voter_info if it failed
             print(f"    Could not retrieve valid voter info for this election using {target_address}.")
 
 

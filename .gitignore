@@ -69,3 +69,6 @@ Thumbs.db
 output/
 *.json
 output*.txt
+
+# External repositories
+searxng-docker/

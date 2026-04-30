@@ -1,47 +1,28 @@
 import os
-from typing import List, Dict, Any, Union
+import sys
+from typing import Any, Dict, List, Optional
+
 from dotenv import load_dotenv
-from typing import Optional
-# --- Load environment variables FIRST ---
-# This ensures GOOGLE_API_KEY is available when ChatGoogleGenerativeAI is instantiated.
-load_dotenv()
-
-# --- Debugging API Key Loading ---
-print(f"Current working directory: {os.getcwd()}")
-dotenv_path = os.path.join(os.getcwd(), '.env')
-print(f"Looking for .env at: {dotenv_path}")
-print(f".env file exists at path: {os.path.exists(dotenv_path)}")
-
-google_api_key_loaded = os.getenv('GOOGLE_API_KEY')
-gemini_api_key_loaded = os.getenv('GEMINI_API_KEY') # Check for both as a fallback
-
-if google_api_key_loaded:
-    print(f"GOOGLE_API_KEY environment variable: {'***** (found)'}")
-elif gemini_api_key_loaded:
-    print(f"GEMINI_API_KEY environment variable: {'***** (found - using this as fallback)'}")
-else:
-    print("\nCRITICAL ERROR: Neither GOOGLE_API_KEY nor GEMINI_API_KEY found in environment.")
-    print("Please ensure your .env file is correctly configured and located in the current directory.")
-    print("Example .env content: GOOGLE_API_KEY=\"YOUR_ACTUAL_GEMINI_API_KEY\"")
-    print("You can get a Gemini API key from https://ai.google.dev/gemini-api/docs/api-key")
-    import sys
-    sys.exit(1) # Exit if no API key is found
-
-# --- LangChain Imports ---
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, ToolMessage
-from pydantic import BaseModel, Field
-from langchain_core.tools import tool
-from langchain_core.runnables.history import RunnableWithMessageHistory
-
-# --- Corrected Import for ChatGoogleGenerativeAI ---
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain.memory import ChatMessageHistory
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_core.tools import tool
+from langchain_google_genai import ChatGoogleGenerativeAI
+from pydantic import BaseModel, Field
+
+load_dotenv()
+
+google_api_key = os.getenv('GOOGLE_API_KEY')
+gemini_api_key = os.getenv('GEMINI_API_KEY')
+
+if not google_api_key and not gemini_api_key:
+    print("\nCRITICAL ERROR: Neither GOOGLE_API_KEY nor GEMINI_API_KEY found in environment.")
+    print("Please ensure your .env file is correctly configured.")
+    print("You can get a Gemini API key from https://ai.google.dev/gemini-api/docs/api-key")
+    sys.exit(1)
 
 
-# --- 1. Define your Recommendation Data (Simulated for this example) ---
-# In a real system, this would come from a database, API, etc.
 RECOMMENDATION_DATA = {
     "movies": [
         {"title": "Inception", "genre": "Sci-Fi", "year": 2010, "rating": 8.8, "plot": "A thief who steals corporate secrets through use of dream-sharing technology."},
@@ -86,12 +67,7 @@ def finish_run():
     finished = True
 @tool
 def get_movie_recommendations(preferences: MoviePreference) -> List[Dict[str, Any]]:
-    """
-    Provides movie recommendations based on user preferences.
-    Takes genre, year_range, and min_rating as input.
-    Example: get_movie_recommendations({'genre': 'Sci-Fi', 'year_range': '2010s', 'min_rating': 8.5})
-    """
-    print(f"\n--- Tool Called: get_movie_recommendations with preferences: {preferences} ---\n")
+    """Provides movie recommendations based on user preferences."""
     results = []
     for movie in RECOMMENDATION_DATA["movies"]:
         match_genre = preferences.genre.lower() in movie["genre"].lower() if preferences.genre else True
@@ -117,12 +93,7 @@ def get_movie_recommendations(preferences: MoviePreference) -> List[Dict[str, An
 
 @tool
 def get_book_recommendations(preferences: BookPreference) -> List[Dict[str, Any]]:
-    """
-    Provides book recommendations based on user preferences.
-    Takes genre, author (optional), and year_range as input.
-    Example: get_book_recommendations({'genre': 'Fantasy', 'author': 'J.R.R. Tolkien', 'year_range': 'pre-1950'})
-    """
-    print(f"\n--- Tool Called: get_book_recommendations with preferences: {preferences} ---\n")
+    """Provides book recommendations based on user preferences."""
     results = []
     for book in RECOMMENDATION_DATA["books"]:
         match_genre = preferences.genre.lower() in book["genre"].lower() if preferences.genre else True
@@ -146,58 +117,35 @@ def get_book_recommendations(preferences: BookPreference) -> List[Dict[str, Any]
             results.append(book)
     return results if results else ["No books found matching these preferences. Please try adjusting your criteria."]
 
-# A tool to confirm user preference type (movie/book)
 @tool
 def clarify_preference_type(query: str) -> str:
-    """
-    Asks the user to clarify if they are looking for movie or book recommendations if it's unclear.
-    The 'query' parameter should be the user's ambiguous request.
-    Example: clarify_preference_type("I want something good to watch.")
-    """
-    print(f"\n--- Tool Called: clarify_preference_type with query: {query} ---\n")
+    """Asks the user to clarify if they are looking for movie or book recommendations."""
     return "Are you looking for movie recommendations or book recommendations?"
 
 
 tools = [get_movie_recommendations, get_book_recommendations, clarify_preference_type, finish_run]
 
-# --- 3. Define the LLM and Agent ---
-# Ensure GOOGLE_API_KEY is set as an environment variable (loaded by load_dotenv())
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0) # Using gemini-pro for its strong tool-calling capabilities. You can try "gemini-1.5-flash" or "gemini-1.5-pro" if you have access and prefer.
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
 
-# Define the prompt for the agent
-# The system message guides the agent's behavior
-# MessagesPlaceholder("chat_history") is crucial for memory
-# MessagesPlaceholder("agent_scratchpad") is where the agent's thoughts and tool outputs go
-prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            "You are an adaptive recommendation system. Your goal is to recommend movies or books to the user. "
-            "You need to ask clarifying questions to understand their preferences (e.g., genre, year, rating for movies; genre, author, year for books). "
-            "If the user's request is ambiguous (e.g., 'recommend something'), you must ask them to specify if they want movies or books. "
-            "Once you have enough information, use the appropriate tool to find recommendations. "
-            "If no recommendations are found, politely inform the user and ask if they'd like to adjust their criteria."
-            "Once you are done giving a recommendation, call the appropriate tool to finish your run."
-            "\n\nBegin by asking about their general preference (movies or books)."
-        ),
-        MessagesPlaceholder("chat_history"),
-        ("human", "{input}"),
-        MessagesPlaceholder("agent_scratchpad"),
-    ]
-)
+prompt = ChatPromptTemplate.from_messages([
+    (
+        "system",
+        "You are an adaptive recommendation system. Your goal is to recommend movies or books to the user. "
+        "You need to ask clarifying questions to understand their preferences. "
+        "If the user's request is ambiguous, ask them to specify if they want movies or books. "
+        "Once you have enough information, use the appropriate tool to find recommendations. "
+        "If no recommendations are found, politely inform the user and ask if they'd like to adjust their criteria."
+        "Once you are done giving a recommendation, call the finish_run tool."
+        "\n\nBegin by asking about their general preference (movies or books)."
+    ),
+    MessagesPlaceholder("chat_history"),
+    ("human", "{input}"),
+    MessagesPlaceholder("agent_scratchpad"),
+])
 
-# Create the agent
-# create_tool_calling_agent is excellent for agents that primarily interact via tools
 agent = create_tool_calling_agent(llm, tools, prompt)
-
-# Create the AgentExecutor
-# This is the runtime for the agent, managing its steps (reasoning, tool calls, responses)
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
-# --- 4. Add Conversational Memory ---
-# This ensures the agent remembers the conversation history.
-# We'll use a simple in-memory history for demonstration.
-# In a real app, you'd store this in a database (e.g., Redis, PostgreSQL, etc.)
 store = {}
 
 def get_session_history(session_id: str) -> ChatMessageHistory:
@@ -214,39 +162,29 @@ with_message_history = RunnableWithMessageHistory(
     history_messages_key="chat_history",
 )
 
-# --- 5. Interact with the Adaptive Recommendation System ---
-
 if __name__ == "__main__":
     print("\n" + "="*50)
-    print("Welcome to the Adaptive Recommendation System (powered by Gemini)!")
-    print("I can recommend movies or books. What are you looking for today?")
-    print("Type 'exit' to quit.")
+    print("Welcome to the Adaptive Recommendation System!")
+    print("I can recommend movies or books. Type 'exit' to quit.")
     print("="*50 + "\n")
 
-    session_id = "user123_gemini_session" # A unique ID for the user's session
+    session_id = "user_session_001"
 
     while True:
         user_input = input("\nYou: ")
         if user_input.lower() == 'exit':
             print("Goodbye!")
             break
-        if finished == True:
+        if finished:
             break
 
         try:
-            print("\n--- Agent's Internal Process ---")
-            # Invoke the agent with the user's input and the session ID
-            # The 'config' parameter is where you pass the session_id
             response = with_message_history.invoke(
                 {"input": user_input},
                 config={"configurable": {"session_id": session_id}}
             )
-            print("--- End of Agent's Internal Process ---")
             print(f"Agent: {response['output']}")
 
         except Exception as e:
             print(f"\nAn unexpected error occurred: {e}")
-            print("Please check the traceback above for details.")
-            print("Ensure your Gemini API key is correct and valid.")
-            # Optionally, you can add more sophisticated error handling or fallback responses here.
-            break # Exit on unhandled error
+            break
