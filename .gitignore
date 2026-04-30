@@ -57,18 +57,21 @@ Thumbs.db
 
 # Cache
 .cache/
+__pycache__/
+*.py[cod]
+*$py.class
 
 # Temporary files
 *.tmp
 *.temp
 
-# Data files (optional - uncomment if you want to exclude pickle files)
-# *.pkl
+# Data files
+*.pkl
 
 # Output files
 output/
 *.json
 output*.txt
 
-# External repositories
+# External repositories / tools
 searxng-docker/
