@@ -75,3 +75,9 @@ output*.txt
 
 # External repositories / tools
 searxng-docker/
+
+# Local SQLite databases
+voteclear.db
+voteclear.db-journal
+voteclear.db-wal
+voteclear.db-shm

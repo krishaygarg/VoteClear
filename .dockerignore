@@ -1,0 +1,13 @@
+venv/
+env/
+.git/
+.gitignore
+__pycache__/
+*.pyc
+voteclear.db
+flask_session/
+.env
+Dockerfile
+.dockerignore
+.vscode/
+.DS_Store
