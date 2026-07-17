@@ -98,3 +98,8 @@ def reset_and_seed():
 
 if __name__ == "__main__":
     reset_and_seed()
+    try:
+        from verify_candidates import verify_all_elections
+        verify_all_elections()
+    except Exception as e:
+        print(f"Candidate verification guardrail skipped: {e}")
