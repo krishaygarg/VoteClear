@@ -1,5 +1,7 @@
 # VoteClear
 
+**Live Demo:** [voteclear.onrender.com](https://voteclear.onrender.com)
+
 VoteClear is an intelligent political recommendation system that helps voters make informed decisions by matching their personal values and preferences with candidate stances on various policy issues. The system uses AI-powered analysis to provide personalized candidate recommendations based on practical, everyday concerns rather than abstract political ideologies.
 
 ## Features
