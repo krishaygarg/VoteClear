@@ -19,8 +19,8 @@ from core.tools import search_tool, wiki_tool
 
 load_dotenv()
 
-# Setup LLM - gemini-2.5-flash is active and supported
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.1)
+# Setup LLM - gemini-3.1-flash-lite is active and supported
+llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0.1)
 
 # Custom SQLite Message History class
 class SQLiteChatMessageHistory(BaseChatMessageHistory):

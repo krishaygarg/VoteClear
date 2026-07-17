@@ -28,7 +28,7 @@ def verify_all_elections():
         print("No elections found in database to verify.")
         return True
 
-    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.0)
+    llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", temperature=0.0)
     failed = False
 
     for election in elections:
@@ -49,6 +49,10 @@ def verify_all_elections():
         search_query = f"{election_name} general election candidates 2026 nominees"
         search_results = ddg_search(search_query, max_results=5)
         
+        if not search_results:
+            print(f"⚠️ Web search returned no results for '{election_name}' (possibly rate-limited). Skipping verification.")
+            continue
+            
         search_text = ""
         for idx, res in enumerate(search_results):
             search_text += f"[{idx+1}] Title: {res['title']}\nURL: {res['url']}\nSnippet: {res['content']}\n\n"
